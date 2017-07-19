@@ -1,0 +1,13 @@
+# system
+.DS_Store
+.localized
+
+# gitignore
+logs
+*.log
+node_modules
+.env
+
+# Only apps should have lockfiles
+yarn.lock
+package-lock.json

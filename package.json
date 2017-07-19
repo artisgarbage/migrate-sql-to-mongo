@@ -1,0 +1,33 @@
+{
+  "name": "migrate-sql-to-mongo",
+  "version": "0.1.0",
+  "description": "Node module that migrates a SQL database to a Mongo database",
+  "main": "index.js",
+  "scripts": {
+    "test": "jshint index.js example.js modules/.; eslint index.js modules/.;"
+  },
+  "keywords": [
+    "nodejs",
+    "mongodb",
+    "SQL",
+    "migration",
+    "script",
+    "npm"
+  ],
+  "author": "Anthony Chavez",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.7.0",
+    "jshint": "^2.9.5"
+  },
+  "debug": true,
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "mongodb": "^2.2.30",
+    "sequelize": "^4.3.2",
+    "tedious": "^2.0.0",
+    "winston": "^2.3.1"
+  }
+}
