@@ -17,10 +17,16 @@ const Mongo = {
       if (process.env.MONGO_PORT) mongoUri = `${mongoUri}:${process.env.MONGO_PORT}`
       if (process.env.MONGO_DB_NAME) mongoUri = `${mongoUri}/${process.env.MONGO_DB_NAME}`
 
-      Log.info('Connect to Mongo : ', mongoUri)
+      Log.info('Connect to MongoDB at : ', {
+        host: process.env.MONGO_HOST,
+        user: process.env.MONGO_USR,
+        db: process.env.MONGO_DB_NAME,
+        collection: process.env.MONGO_COLLECTION
+      })
 
       MongoClient.connect(mongoUri, {
-        uri_decode_auth: true // jshint ignore:line
+        uri_decode_auth: true, // jshint ignore:line
+        poolSize: process.env.MONGO_POOL_SIZE
       }, (err, database) => {
         if (err) {
           Log.error('Mongo Connection Error : ', err)
