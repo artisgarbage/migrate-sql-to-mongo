@@ -3,7 +3,7 @@ const fs  = require('fs'),
   sqlToMongo = require('./index.js'),
   // Column mapping config object and SQL query statement
   mapConfigObj = require('./example.map.config.json'),
-  sqlQueryStr = fs.readFileSync('./example.query.txt').toString()
+  sqlQueryStr = fs.readFileSync('./example.query.sql').toString()
 
 // Main module method invocation
 sqlToMongo.migrate(mapConfigObj, sqlQueryStr)

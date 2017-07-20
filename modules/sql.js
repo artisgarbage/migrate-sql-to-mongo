@@ -4,7 +4,7 @@ const Sequelize = require('sequelize'),
 
 
 // Private Vars
-const sqlize = new Sequelize(process.env.SQL_DB, process.env.SQL_USR, process.env.SQL_PW, {
+const sequelize = new Sequelize(process.env.SQL_DB, process.env.SQL_USR, process.env.SQL_PW, {
   host: process.env.SQL_HOST,
   dialect: process.env.SQL_DIALECT,
   pool: {
@@ -18,17 +18,31 @@ const sqlize = new Sequelize(process.env.SQL_DB, process.env.SQL_USR, process.en
 
 // Private Methods
 const runQuery = function runQuery(queryStr) {
-  Log.info('Run Query : ', queryStr)
+  Log.debug('Run Query : ', queryStr)
   // Query promise
   const queryP = new Promise((resolve, reject) => {
-    resolve({
-      success: true,
-      error: false,
-      msg: 'Query successfully',
-      data: [{ name: 'name1' }, { name: 'name2' }, { name: 'name3' }]
-    })
-    const something = {}
-    if (something === 'something else') reject()
+    let response = {}
+    sequelize.query(queryStr, { type: sequelize.QueryTypes.SELECT })
+      .then(res => {
+        Log.info(`Found : ${res.length} Records`)
+        response = {
+          success: true,
+          error: false,
+          msg: 'Query success',
+          data: res
+        }
+        Log.info(response.msg)
+        resolve(response)
+      }).catch(err => {
+        response = {
+          success: false,
+          error: true,
+          errorMsg: err,
+          msg: 'Query failure'
+        }
+        Log.error(response.msg, err)
+        reject(response)
+      })
   })
   return queryP
 }
@@ -39,7 +53,7 @@ const SQL = {
   isConnd: false,
   setupSqlCon() {
     const connP = new Promise((resolve, reject) => {
-      Log.info('Connect to MongoDB at : ', {
+      Log.info(`Connect to ${process.env.SQL_DIALECT} database at : `, {
         host: process.env.SQL_HOST,
         user: process.env.SQL_USR,
         db: process.env.SQL_DB,
@@ -47,7 +61,7 @@ const SQL = {
       })
 
       let response = {}
-      sqlize.authenticate()
+      sequelize.authenticate()
         .then(() => {
           this.isConnd = true
           response = {
@@ -76,7 +90,6 @@ const SQL = {
     const getP = new Promise((resolve, reject) => {
       // Connect first then run query if not connected
       if (!this.isConnd) {
-        Log.info('Need to connect')
         this.setupSqlCon()
           .then(() => {
             runQuery(queryStr)
@@ -85,7 +98,6 @@ const SQL = {
           })
           .catch(reject)
       } else {
-        Log.info('Already connected')
         runQuery(queryStr)
           .then(resolve)
           .catch(reject)

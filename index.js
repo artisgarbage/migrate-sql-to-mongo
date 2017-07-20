@@ -69,7 +69,7 @@ const sqlToMongo = {
     return true
   },
   migrate: (configObj, sqlQueryStr) => {
-    Log.info('Migrate using config obj : ', configObj)
+    Log.debug('Migrate using config obj : ', configObj)
     // If configured to log to a file, log to a unique file each time migrate() is called
     if (process.env.LOG_TO_FILE === 'true') Log.setupMtLog()
 
