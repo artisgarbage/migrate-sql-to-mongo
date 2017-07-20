@@ -16,13 +16,29 @@ const sqlize = new Sequelize(process.env.SQL_DB, process.env.SQL_USR, process.en
 })
 
 
+// Private Methods
+const runQuery = function runQuery(queryStr) {
+  Log.info('Run Query : ', queryStr)
+  // Query promise
+  const queryP = new Promise((resolve, reject) => {
+    resolve({
+      success: true,
+      error: false,
+      msg: 'Query successfully',
+      data: [{ name: 'name1' }, { name: 'name2' }, { name: 'name3' }]
+    })
+    const something = {}
+    if (something === 'something else') reject()
+  })
+  return queryP
+}
+
+
 // Module Definition
 const SQL = {
-  isAuthd: false,
+  isConnd: false,
   setupSqlCon() {
     const connP = new Promise((resolve, reject) => {
-      let response = {}
-
       Log.info('Connect to MongoDB at : ', {
         host: process.env.SQL_HOST,
         user: process.env.SQL_USR,
@@ -30,9 +46,10 @@ const SQL = {
         dialect: process.env.SQL_DIALECT
       })
 
+      let response = {}
       sqlize.authenticate()
         .then(() => {
-          this.isAuthd = true
+          this.isConnd = true
           response = {
             success: true,
             error: false,
@@ -42,7 +59,7 @@ const SQL = {
           resolve(response)
         })
         .catch(err => {
-          this.isAuthd = false
+          this.isConnd = false
           response = {
             success: false,
             error: true,
@@ -55,34 +72,21 @@ const SQL = {
     })
     return connP
   },
-  runQuery(queryStr) {
-    Log.info('Run Query : ', queryStr)
-    const queryP = new Promise((resolve, reject) => {
-      resolve({
-        success: true,
-        error: false,
-        msg: 'Query successfully',
-        data: [{ name: 'name1' }, { name: 'name2' }, { name: 'name3' }]
-      })
-      const something = {}
-      if (something === 'something else') reject()
-    })
-    return queryP
-  },
   getSqlData(queryStr) {
     const getP = new Promise((resolve, reject) => {
-      if (!this.isAuthd) {
+      // Connect first then run query if not connected
+      if (!this.isConnd) {
         Log.info('Need to connect')
         this.setupSqlCon()
           .then(() => {
-            this.runQuery(queryStr)
+            runQuery(queryStr)
               .then(resolve)
               .catch(reject)
           })
           .catch(reject)
       } else {
         Log.info('Already connected')
-        this.runQuery(queryStr)
+        runQuery(queryStr)
           .then(resolve)
           .catch(reject)
       }
