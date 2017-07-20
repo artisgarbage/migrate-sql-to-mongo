@@ -18,7 +18,9 @@ const init = () => {
   Log.setupMtLogger()
 
   // Setup connections
-  Sql.setupSqlCon()
+  // Sql.setupSqlCon().then(() => {
+  //   Log.info('Sequelize connection OK')
+  // })
   Mongo.setupMongoCon()
 }
 
@@ -79,21 +81,24 @@ const sqlToMongo = {
           msg: 'Migration failure, config not OK'
         })
       } else {
-        Log.info('Query with', sqlQueryStr)
         // Conduct migration
-        //
-        // SQL.getSqlData(sqlQueryStr)
-        //   .then(Mongo.updateRecords)
-        //   .then(resolve({
-        //     success: true,
-        //     error: false,
-        //     msg: 'Migration success'
-        //   }))
-        resolve({
-          success: true,
-          error: false,
-          msg: 'Migration success'
-        })
+        Sql.getSqlData(sqlQueryStr)
+        // .then(Mongo.updateRecords)
+          .then((res) => {
+            resolve({
+              success: true,
+              error: false,
+              msg: res.msg
+            })
+          })
+          .catch((err) => {
+            reject({
+              success: false,
+              error: true,
+              errorMsg: err.errorMsg,
+              msg: err.msg
+            })
+          })
       }
     })
     return migrateP
