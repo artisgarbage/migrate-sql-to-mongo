@@ -13,3 +13,7 @@ sqlToMongo.migrate(mapConfigObj, sqlQueryStr)
   .catch(err => {
     console.error('Migration Failure : ', err)
   })
+
+// Utility method invocation checking environmental requirements
+// Note, migrate() calls this method before proceeding through routine
+console.log('Requirements Satisfied : ', sqlToMongo.checkEnvReqs())

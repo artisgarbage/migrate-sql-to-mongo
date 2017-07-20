@@ -27,6 +27,7 @@ const init = () => {
 
 // Module definition
 const sqlToMongo = {
+  // Public utility method for checking required env vars of this module
   checkEnvReqs: () => {
     // Check Config for required key value pairs
     if (!process.env.SQL_HOST) {
