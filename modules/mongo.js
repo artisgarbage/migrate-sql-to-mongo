@@ -16,7 +16,7 @@ const setMongoUri = () => {
   if (process.env.MONGO_PORT) mongoUri = `${mongoUri}:${process.env.MONGO_PORT}`
   if (process.env.MONGO_DB_NAME) mongoUri = `${mongoUri}/${process.env.MONGO_DB_NAME}`
 
-  Log.info('Connect to MongoDB at : ', {
+  Log.debug('Connect to MongoDB at : ', {
     host: process.env.MONGO_HOST,
     user: process.env.MONGO_USR,
     db: process.env.MONGO_DB_NAME,
@@ -70,6 +70,43 @@ const Mongo = {
         })
     })
     return searchP
+  },
+  updateRecords: sqlResObj => {
+    Log.debug(`Update : ${sqlResObj.data.length} Records`)
+
+    const updateAllP = new Promise((resolveAll, rejectAll) => {
+      const updatePromises = []
+      let response = {}
+
+      for (let i = sqlResObj.data.length - 1; i >= 0; i -= 1) {
+        const updateP = new Promise((resolve, reject) => { // jshint ignore:line
+          if (sqlResObj.data[i]) resolve()
+          else reject()
+        })
+        updatePromises.push(updateP)
+      }
+
+      Promise.all(updatePromises)
+        .then(() => {
+          response = {
+            success: true,
+            error: false,
+            msg: 'All updates completed successfully'
+          }
+          Log.info(response.msg)
+          resolveAll(response)
+        })
+        .catch((err) => {
+          response = {
+            success: false,
+            error: true,
+            msg: 'Failed to complete all updates'
+          }
+          Log.error(response.msg, err)
+          rejectAll(response)
+        })
+    })
+    return updateAllP
   }
 }
 

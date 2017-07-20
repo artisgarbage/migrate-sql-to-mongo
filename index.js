@@ -84,7 +84,7 @@ const sqlToMongo = {
       } else {
         // Conduct migration
         Sql.getSqlData(sqlQueryStr)
-        // .then(Mongo.updateRecords)
+          .then(Mongo.updateRecords)
           .then((res) => {
             resolve({
               success: true,

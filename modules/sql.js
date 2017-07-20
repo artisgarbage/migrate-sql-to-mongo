@@ -24,14 +24,13 @@ const runQuery = function runQuery(queryStr) {
     let response = {}
     sequelize.query(queryStr, { type: sequelize.QueryTypes.SELECT })
       .then(res => {
-        Log.info(`Found : ${res.length} Records`)
+        Log.debug(`Found : ${res.length} Records`)
         response = {
           success: true,
           error: false,
           msg: 'Query success',
           data: res
         }
-        Log.info(response.msg)
         resolve(response)
       }).catch(err => {
         response = {
@@ -53,7 +52,7 @@ const SQL = {
   isConnd: false,
   setupSqlCon() {
     const connP = new Promise((resolve, reject) => {
-      Log.info(`Connect to ${process.env.SQL_DIALECT} database at : `, {
+      Log.debug(`Connect to ${process.env.SQL_DIALECT} database at : `, {
         host: process.env.SQL_HOST,
         user: process.env.SQL_USR,
         db: process.env.SQL_DB,
@@ -93,14 +92,24 @@ const SQL = {
         this.setupSqlCon()
           .then(() => {
             runQuery(queryStr)
-              .then(resolve)
-              .catch(reject)
+              .then((res) => {
+                resolve(res)
+              })
+              .catch((err) => {
+                reject(err)
+              })
           })
-          .catch(reject)
+          .catch((err) => {
+            reject(err)
+          })
       } else {
         runQuery(queryStr)
-          .then(resolve)
-          .catch(reject)
+          .then((res) => {
+            resolve(res)
+          })
+          .catch((err) => {
+            reject(err)
+          })
       }
     })
     return getP
