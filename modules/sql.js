@@ -19,8 +19,7 @@ const sqlize = new Sequelize(process.env.SQL_DB, process.env.SQL_USR, process.en
 // Module Definition
 const SQL = {
   isAuthd: false,
-
-  setupSqlCon: function() { // eslint-disable-line
+  setupSqlCon() {
     const connP = new Promise((resolve, reject) => {
       let response = {}
 
@@ -54,10 +53,9 @@ const SQL = {
           reject(response)
         })
     })
-
     return connP
   },
-  runQuery: function(queryStr) { // eslint-disable-line
+  runQuery(queryStr) {
     Log.info('Run Query : ', queryStr)
     const queryP = new Promise((resolve, reject) => {
       resolve({
@@ -71,7 +69,7 @@ const SQL = {
     })
     return queryP
   },
-  getSqlData: function(queryStr) { // eslint-disable-line
+  getSqlData(queryStr) {
     const getP = new Promise((resolve, reject) => {
       if (!this.isAuthd) {
         Log.info('Need to connect')
