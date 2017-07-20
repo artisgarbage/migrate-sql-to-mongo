@@ -15,7 +15,7 @@ let timestamp = '',
   logFilepath = ''
 
 
-// Public method extensions
+// Winston module extension
 winston.setupMtLogger = () => {
   // Set log filepath based on timestamp
   timestamp = Date.now()
