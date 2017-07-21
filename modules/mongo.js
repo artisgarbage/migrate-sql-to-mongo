@@ -30,8 +30,9 @@ const Mongo = {
   db: {},
   setupMongoCon: () => {
     const connectP = new Promise((resolve, reject) => {
+      // Set connection URI
       setMongoUri()
-
+      // Attempt connection
       MongoClient.connect(mongoUri, {
         uri_decode_auth: true, // jshint ignore:line
         poolSize: process.env.MONGO_POOL_SIZE
@@ -47,29 +48,6 @@ const Mongo = {
       })
     })
     return connectP
-  },
-  search: queryObj => {
-    Log.debug('Search based on queryObj : ', queryObj)
-    let searchResults
-    const searchP = new Promise((resolve, reject) => {
-      this.db.collection(process.env.MONGO_COLLECTION)
-        .find(queryObj)
-        .toArray((err, result) => {
-          if (err) {
-            Log.error(err)
-            reject(err)
-          } else if (result.length) {
-            searchResults = result
-            searchResults.none = false
-            Log.debug('Found : ', searchResults)
-          } else {
-            Log.debug('No document(s) found with defined "find" criteria!')
-            searchResults = { none: true }
-          }
-          resolve(searchResults)
-        })
-    })
-    return searchP
   },
   updateRecords: sqlResObj => {
     Log.debug(`Update : ${sqlResObj.data.length} Records`)
@@ -87,7 +65,6 @@ const Mongo = {
         updatePromises.push(updateP)
       }
 
-
       // Resolve main promise once all promises in the array have completed
       Promise.all(updatePromises)
         .then(() => {
@@ -103,6 +80,7 @@ const Mongo = {
           response = {
             success: false,
             error: true,
+            errorMsg: err,
             msg: 'Failed to complete all updates'
           }
           Log.error(response.msg, err)
