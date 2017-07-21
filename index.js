@@ -77,8 +77,6 @@ const sqlToMongo = {
     const migrateP = new Promise((resolve, reject) => {
       if (!configOk) {
         reject({
-          success: false,
-          error: true,
           msg: 'Migration failure, config not OK'
         })
       } else {
@@ -87,15 +85,11 @@ const sqlToMongo = {
           .then(Mongo.updateRecords)
           .then((res) => {
             resolve({
-              success: true,
-              error: false,
               msg: res.msg
             })
           })
           .catch((err) => {
             reject({
-              success: false,
-              error: true,
               errorMsg: err.errorMsg,
               msg: err.msg
             })

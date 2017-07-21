@@ -26,16 +26,12 @@ const runQuery = function runQuery(queryStr) {
       .then(res => {
         Log.debug(`Found : ${res.length} Records`)
         response = {
-          success: true,
-          error: false,
           msg: 'Query success',
           data: res
         }
         resolve(response)
       }).catch(err => {
         response = {
-          success: false,
-          error: true,
           errorMsg: err,
           msg: 'Query failure'
         }
@@ -64,8 +60,6 @@ const SQL = {
         .then(() => {
           this.isConnd = true
           response = {
-            success: true,
-            error: false,
             msg: 'Sequelize connection success'
           }
           Log.info(response.msg)
@@ -74,8 +68,6 @@ const SQL = {
         .catch(err => {
           this.isConnd = false
           response = {
-            success: false,
-            error: true,
             errorMsg: err,
             msg: 'Sequelize connection failure'
           }

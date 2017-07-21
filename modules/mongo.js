@@ -69,8 +69,6 @@ const Mongo = {
       Promise.all(updatePromises)
         .then(() => {
           response = {
-            success: true,
-            error: false,
             msg: 'All updates completed successfully'
           }
           Log.info(response.msg)
@@ -78,8 +76,6 @@ const Mongo = {
         })
         .catch((err) => {
           response = {
-            success: false,
-            error: true,
             errorMsg: err,
             msg: 'Failed to complete all updates'
           }
