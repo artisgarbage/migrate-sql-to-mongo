@@ -49,7 +49,7 @@ const Mongo = {
     return connectP
   },
   search: queryObj => {
-    Log.info('Search based on queryObj : ', queryObj)
+    Log.debug('Search based on queryObj : ', queryObj)
     let searchResults
     const searchP = new Promise((resolve, reject) => {
       this.db.collection(process.env.MONGO_COLLECTION)
@@ -61,9 +61,9 @@ const Mongo = {
           } else if (result.length) {
             searchResults = result
             searchResults.none = false
-            // Log.info('Found : ', searchResults)
+            Log.debug('Found : ', searchResults)
           } else {
-            Log.info('No document(s) found with defined "find" criteria!')
+            Log.debug('No document(s) found with defined "find" criteria!')
             searchResults = { none: true }
           }
           resolve(searchResults)
@@ -78,6 +78,7 @@ const Mongo = {
       const updatePromises = []
       let response = {}
 
+      // Create a promise for every record update attempt and store in an array
       for (let i = sqlResObj.data.length - 1; i >= 0; i -= 1) {
         const updateP = new Promise((resolve, reject) => { // jshint ignore:line
           if (sqlResObj.data[i]) resolve()
@@ -86,6 +87,8 @@ const Mongo = {
         updatePromises.push(updateP)
       }
 
+
+      // Resolve main promise once all promises in the array have completed
       Promise.all(updatePromises)
         .then(() => {
           response = {
@@ -103,7 +106,8 @@ const Mongo = {
             msg: 'Failed to complete all updates'
           }
           Log.error(response.msg, err)
-          rejectAll(response)
+          // Bubble a rejection to the main sqlToMongo.migrate() method where this is called
+          if (process.env.SINGLE_FAIL_CAUSE_MAIN_FAIL === 'true') rejectAll(response)
         })
     })
     return updateAllP
