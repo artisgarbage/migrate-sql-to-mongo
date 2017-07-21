@@ -1,4 +1,33 @@
 {
-  "displayname" : "displayname",
-  "first-name" : "first_name"
+  "employee_id": {
+    "sqlCol": "employee_id"
+  },
+  "employee": {
+      "picture": {
+        "sqlCol" :"samaccountname",
+        "useTemplate" : true,
+        "templateLiteral" : "http://nexus.cpbgroup.com/nexusfiles/employeefile/photos/${samaccountname}.jpg"
+      },
+      "employee_id": {
+        "sqlCol": "employee_id"
+      },
+      "displayname" : {
+        "sqlCol": "displayname"
+      },
+      "firstname" : {
+        "sqlCol": "firstname"
+      },
+      "title" : {
+        "sqlCol": "title"
+      },
+      "lastname" : {
+        "sqlCol": "lastname"
+      },
+      "department" : {
+        "sqlCol": "department"
+      },
+      "email" :  {
+        "sqlCol": "email"
+      }
+  }
 }

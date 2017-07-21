@@ -1,10 +1,16 @@
+/* jshint ignore:start*/
+
 // Dependencies
 const MongoClient = require('mongodb').MongoClient,
   Log = require('./logger')
 
 
 // Private vars
-let mongoUri = 'mongodb://'
+let mongoUri = 'mongodb://',
+  mapConfig = {},
+  db = {},
+  collection = {},
+  sqlResObj = {}
 
 
 // Private Methods
@@ -25,6 +31,82 @@ const setMongoUri = () => {
 }
 
 
+// const evalTemplate = (configObj) => {
+//   let compiledTemplate = ''
+//   const tpl = new Function("return `"+configObj.templateLiteral+"`")
+//   compiledTemplate = tpl.call({
+//       word: "world"
+//   })
+//   return compiledTemplate
+// }
+
+
+const getTranslatedObj = (sqlObj) => {
+  const translatedObj = {},
+    oKeys = Object.keys(mapConfig)
+
+  for (let j = oKeys.length - 1; j >= 0; j -= 1) {
+    const key = oKeys[j]
+
+    // Handle child keys if detected, otherwise just handle the key|value pair
+    if (Object.keys(mapConfig[key]).length > 1 && key !== 'sqlCol') {
+      // Stub inthe new key as an object
+      translatedObj[key] = {}
+
+      // Loop through child keys and populate into the transated obj
+      const iKeys = Object.keys(mapConfig[key])
+      for (let k = iKeys.length - 1; k >= 0; k -= 1) {
+        const iKey = iKeys[k],
+          targetSqlCol = mapConfig[key][iKey].sqlCol
+
+        translatedObj[key][iKey] = sqlObj[targetSqlCol]
+      }
+    } else {
+      // Push the appropriate value from sequel into the appropriate key of translated obj
+      translatedObj[key] = sqlObj[mapConfig[key].sqlCol]
+    }
+  }
+
+  return translatedObj
+}
+
+
+const translateAndSaveData = () => {
+  const updatePromises = []
+
+  // Create a promise for every record update attempt and store in an array
+  for (let i = sqlResObj.data.length - 1; i >= 0; i -= 1) {
+    /* eslint-disable */
+
+    const updateP = new Promise((resolve, reject) => { // eshint-ignore-line
+
+      let response = {}
+      const record = getTranslatedObj(sqlResObj.data[i]) // eshint-ignore-line no-loop-func
+      /* eslint-enable */
+      collection.insertOne(record)
+        .then(() => {
+          response = {
+            msg: 'Insert completed successfully'
+          }
+          resolve()
+        })
+        .catch((err) => {
+          response = {
+            errorMsg: err,
+            msg: 'Insert failed to complete update'
+          }
+          Log.error(response.msg, err)
+          reject()
+        })
+    })
+    updatePromises.push(updateP)
+  }
+
+  // Resolve main promise once all promises in the array have completed
+  return Promise.all(updatePromises)
+}
+
+
 // Module definition
 const Mongo = {
   db: {},
@@ -38,52 +120,76 @@ const Mongo = {
         poolSize: process.env.MONGO_POOL_SIZE
       }, (err, database) => {
         if (err) {
-          Log.error('Mongo Connection Error : ', err)
+          Log.error('Mongo connection error : ', err)
           reject(err)
         } else {
-          this.db = database
-          Log.info('Mongo Connection Success')
+          db = database
+          collection = db.collection(process.env.MONGO_DB_NAME)
+          Log.info('Mongo connection success')
           resolve()
         }
       })
     })
     return connectP
   },
-  updateRecords: sqlResObj => {
+  setConfigObj: (configObj) => {
+    mapConfig = configObj
+    Log.debug('Map Config Set : ', mapConfig)
+  },
+  replaceCollection: (sqlObj) => {
+    sqlResObj = sqlObj
     Log.debug(`Update : ${sqlResObj.data.length} Records`)
 
     const updateAllP = new Promise((resolveAll, rejectAll) => {
-      const updatePromises = []
       let response = {}
 
-      // Create a promise for every record update attempt and store in an array
-      for (let i = sqlResObj.data.length - 1; i >= 0; i -= 1) {
-        const updateP = new Promise((resolve, reject) => { // jshint ignore:line
-          if (sqlResObj.data[i]) resolve()
-          else reject()
-        })
-        updatePromises.push(updateP)
-      }
-
-      // Resolve main promise once all promises in the array have completed
-      Promise.all(updatePromises)
-        .then(() => {
-          response = {
-            msg: 'All updates completed successfully'
-          }
-          Log.info(response.msg)
-          resolveAll(response)
-        })
+      // Empty the target collection
+      collection.removeMany({})
         .catch((err) => {
-          response = {
-            errorMsg: err,
-            msg: 'Failed to complete all updates'
-          }
-          Log.error(response.msg, err)
-          // Bubble a rejection to the main sqlToMongo.migrate() method where this is called
-          if (process.env.SINGLE_FAIL_CAUSE_MAIN_FAIL === 'true') rejectAll(response)
+          Log.error('Failed to empty collection', err)
         })
+
+      // Perform bulk replace if Mongo structure to be analogous
+      // Otherwise, translate data based on configuration
+      if (process.env.EQUAL_STRUCTURE === 'true') {
+        collection.insertMany(sqlResObj.data)
+          .then(() => {
+            response = {
+              msg: 'All updates completed successfully'
+            }
+            Log.info(response.msg)
+            resolveAll(response)
+          })
+          .catch((err) => {
+            response = {
+              errorMsg: err,
+              msg: 'Failed to complete all updates'
+            }
+            Log.error(response.msg, err)
+            // Bubble a rejection to the main sqlToMongo.migrate() method where this is called
+            if (process.env.SINGLE_FAIL_CAUSE_MAIN_FAIL === 'true') rejectAll(response)
+          })
+      } else {
+        translateAndSaveData()
+          .then(() => {
+            response = {
+              msg: 'All updates completed successfully'
+            }
+            Log.info(response.msg)
+            resolveAll(response)
+          })
+          .catch((err) => {
+            response = {
+              errorMsg: err,
+              msg: 'Failed to complete all updates'
+            }
+            Log.error(response.msg, err)
+            // Bubble a rejection to the main sqlToMongo.migrate() method where this is called
+            if (process.env.SINGLE_FAIL_CAUSE_MAIN_FAIL === 'true') rejectAll(response)
+          })
+      }
     })
+
     return updateAllP
   }
 }
@@ -91,3 +197,5 @@ const Mongo = {
 
 // Export Singleton Service
 module.exports = Mongo
+
+/* jshint ignore:end */

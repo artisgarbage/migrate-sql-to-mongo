@@ -80,15 +80,18 @@ const sqlToMongo = {
           msg: 'Migration failure, config not OK'
         })
       } else {
+        // Set translation config
+        Mongo.setConfigObj(configObj)
         // Conduct migration
         Sql.getSqlData(sqlQueryStr)
-          .then(Mongo.updateRecords)
+          .then(Mongo.replaceCollection)
           .then((res) => {
             resolve({
               msg: res.msg
             })
           })
           .catch((err) => {
+            Log.info('hit migrate error')
             reject({
               errorMsg: err.errorMsg,
               msg: err.msg
