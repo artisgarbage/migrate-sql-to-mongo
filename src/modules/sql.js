@@ -1,6 +1,6 @@
 // Dependencies
 const Sequelize = require('sequelize'),
-  Log = require('./logger')
+  Log = require('../utils/logger')
 
 
 // Private Vars

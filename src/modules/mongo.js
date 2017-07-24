@@ -2,7 +2,7 @@
 
 // Dependencies
 const MongoClient = require('mongodb').MongoClient,
-  Log = require('./logger')
+  Log = require('../utils/logger')
 
 
 // Private vars

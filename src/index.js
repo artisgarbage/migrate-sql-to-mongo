@@ -3,7 +3,7 @@ require('dotenv').config()
 
 
 // Dependencies
-const Log = require('./modules/logger'),
+const Log = require('./utils/logger'),
   Sql = require('./modules/sql'),
   Mongo = require('./modules/mongo')
 
