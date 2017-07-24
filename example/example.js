@@ -8,10 +8,10 @@ const fs  = require('fs'),
 // Main module method invocation
 sqlToMongo.migrate(mapConfigObj, sqlQueryStr)
   .then(res => {
-    console.log('Migration Success : ', res)
+    console.log('Migration Success : ', res.msg)
   })
   .catch(err => {
-    console.error('Migration Failure : ', err)
+    console.error('Migration Failure : ', err.errorMsg)
   })
 
 // Utility method invocation checking environmental requirements

@@ -31,14 +31,16 @@ const setMongoUri = () => {
 }
 
 
-// const evalTemplate = (configObj) => {
-//   let compiledTemplate = ''
-//   const tpl = new Function("return `"+configObj.templateLiteral+"`")
-//   compiledTemplate = tpl.call({
-//       word: "world"
-//   })
-//   return compiledTemplate
-// }
+const evalTemplate = (templateStr, templateVal) => {
+  let compiledTemplate = ''
+  /*eslint-disable */
+  const template = new Function('return `' + templateStr + '`')
+  compiledTemplate = template.call({
+    sqlCol: templateVal
+  })
+  /*eslint-enable */
+  return compiledTemplate
+}
 
 
 const getTranslatedObj = (sqlObj) => {
@@ -46,10 +48,20 @@ const getTranslatedObj = (sqlObj) => {
     oKeys = Object.keys(mapConfig)
 
   for (let j = oKeys.length - 1; j >= 0; j -= 1) {
-    const key = oKeys[j]
+    const key = oKeys[j],
+      isOuterTemplate = Object.keys(mapConfig[key]).includes('templateLiteral')
+
+    // Handle translations that require custom templatization
+    if (isOuterTemplate) {
+      const targetSqlCol = mapConfig[key].sqlCol
+      let compiledTemplate = ''
+
+      compiledTemplate = evalTemplate(mapConfig[key].templateLiteral, sqlObj[targetSqlCol])
+      translatedObj[key] = compiledTemplate
+    }
 
     // Handle child keys if detected, otherwise just handle the key|value pair
-    if (Object.keys(mapConfig[key]).length > 1 && key !== 'sqlCol') {
+    if (Object.keys(mapConfig[key]).length > 1 && key !== 'sqlCol' && !isOuterTemplate) {
       // Stub inthe new key as an object
       translatedObj[key] = {}
 
@@ -57,16 +69,24 @@ const getTranslatedObj = (sqlObj) => {
       const iKeys = Object.keys(mapConfig[key])
       for (let k = iKeys.length - 1; k >= 0; k -= 1) {
         const iKey = iKeys[k],
-          targetSqlCol = mapConfig[key][iKey].sqlCol
+          targetSqlCol = mapConfig[key][iKey].sqlCol,
+          isInnerTemplate = Object.keys(mapConfig[key][iKey]).includes('templateLiteral')
 
-        translatedObj[key][iKey] = sqlObj[targetSqlCol]
+        if (isInnerTemplate) {
+          const templateLiteral = mapConfig[key][iKey].templateLiteral
+          let compiledTemplate = ''
+
+          compiledTemplate = evalTemplate(templateLiteral, sqlObj[targetSqlCol])
+          translatedObj[key][iKey] = compiledTemplate
+        } else {
+          translatedObj[key][iKey] = sqlObj[targetSqlCol]
+        }
       }
-    } else {
+    } else if (Object.keys(mapConfig[key]).length >= 1 && !isOuterTemplate) {
       // Push the appropriate value from sequel into the appropriate key of translated obj
       translatedObj[key] = sqlObj[mapConfig[key].sqlCol]
     }
   }
-
   return translatedObj
 }
 
@@ -76,6 +96,7 @@ const translateAndSaveData = () => {
 
   // Create a promise for every record update attempt and store in an array
   for (let i = sqlResObj.data.length - 1; i >= 0; i -= 1) {
+  // for (let i = 2; i >= 0; i -= 1) {
     /* eslint-disable */
 
     const updateP = new Promise((resolve, reject) => { // eshint-ignore-line
@@ -150,7 +171,7 @@ const Mongo = {
         })
 
       // Perform bulk replace if Mongo structure to be analogous
-      // Otherwise, translate data based on configuration
+      // Otherwise, translate data based on configuration and save
       if (process.env.EQUAL_STRUCTURE === 'true') {
         collection.insertMany(sqlResObj.data)
           .then(() => {
@@ -173,7 +194,7 @@ const Mongo = {
         translateAndSaveData()
           .then(() => {
             response = {
-              msg: 'All updates completed successfully'
+              msg: `${sqlResObj.data.length} updates completed successfully`
             }
             Log.info(response.msg)
             resolveAll(response)

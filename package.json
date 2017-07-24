@@ -1,5 +1,5 @@
 {
-  "name": "migrate-sql-to-mongo",
+  "name": "migrate-sql-to-mongo-js",
   "version": "0.1.0",
   "description": "Node module that migrates a SQL database to a Mongo database",
   "main": "./src/index.js",

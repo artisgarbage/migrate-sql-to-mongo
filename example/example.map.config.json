@@ -4,9 +4,8 @@
   },
   "employee": {
       "picture": {
-        "sqlCol" :"samaccountname",
-        "useTemplate" : true,
-        "templateLiteral" : "http://nexus.cpbgroup.com/nexusfiles/employeefile/photos/${samaccountname}.jpg"
+        "sqlCol": "samaccountname",
+        "templateLiteral" : "http://placehold.it/400x400?t=${this.sqlCol}"
       },
       "employee_id": {
         "sqlCol": "employee_id"
