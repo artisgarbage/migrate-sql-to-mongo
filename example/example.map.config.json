@@ -1,0 +1,32 @@
+{
+  "employee_id": {
+    "sqlCol": "employee_id"
+  },
+  "employee": {
+      "picture": {
+        "sqlCol": "samaccountname",
+        "templateLiteral" : "http://placehold.it/400x400?t=${this.sqlCol}"
+      },
+      "employee_id": {
+        "sqlCol": "employee_id"
+      },
+      "displayname" : {
+        "sqlCol": "displayname"
+      },
+      "firstname" : {
+        "sqlCol": "firstname"
+      },
+      "title" : {
+        "sqlCol": "title"
+      },
+      "lastname" : {
+        "sqlCol": "lastname"
+      },
+      "department" : {
+        "sqlCol": "department"
+      },
+      "email" :  {
+        "sqlCol": "email"
+      }
+  }
+}

@@ -3,7 +3,7 @@ require('dotenv').config()
 
 
 // Dependencies
-const Log = require('./modules/logger'),
+const Log = require('./utils/logger'),
   Sql = require('./modules/sql'),
   Mongo = require('./modules/mongo')
 
@@ -18,13 +18,16 @@ const init = () => {
   Log.setupMtLogger()
 
   // Setup connections
-  Sql.setupSqlCon()
+  // Sql.setupSqlCon().then(() => {
+  //   Log.info('Sequelize connection OK')
+  // })
   Mongo.setupMongoCon()
 }
 
 
 // Module definition
 const sqlToMongo = {
+  // Public utility method for checking required env vars of this module
   checkEnvReqs: () => {
     // Check Config for required key value pairs
     if (!process.env.SQL_HOST) {
@@ -66,7 +69,7 @@ const sqlToMongo = {
     return true
   },
   migrate: (configObj, sqlQueryStr) => {
-    Log.info('Migrate using config obj : ', configObj)
+    Log.debug('Migrate using config obj : ', configObj)
     // If configured to log to a file, log to a unique file each time migrate() is called
     if (process.env.LOG_TO_FILE === 'true') Log.setupMtLog()
 
@@ -74,26 +77,26 @@ const sqlToMongo = {
     const migrateP = new Promise((resolve, reject) => {
       if (!configOk) {
         reject({
-          success: false,
-          error: true,
           msg: 'Migration failure, config not OK'
         })
       } else {
-        Log.info('Query with', sqlQueryStr)
+        // Set translation config
+        Mongo.setConfigObj(configObj)
         // Conduct migration
-        //
-        // SQL.getSqlData(sqlQueryStr)
-        //   .then(Mongo.updateRecords)
-        //   .then(resolve({
-        //     success: true,
-        //     error: false,
-        //     msg: 'Migration success'
-        //   }))
-        resolve({
-          success: true,
-          error: false,
-          msg: 'Migration success'
-        })
+        Sql.getSqlData(sqlQueryStr)
+          .then(Mongo.replaceCollection)
+          .then((res) => {
+            resolve({
+              msg: res.msg
+            })
+          })
+          .catch((err) => {
+            Log.info('hit migrate error')
+            reject({
+              errorMsg: err.errorMsg,
+              msg: err.msg
+            })
+          })
       }
     })
     return migrateP

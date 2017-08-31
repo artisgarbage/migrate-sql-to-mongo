@@ -3,11 +3,19 @@ const winston = require('winston')
 
 
 // Private vars
+const logPriorityMap = {
+  0: 'error',
+  1: 'warn',
+  2: 'info',
+  3: 'verbose',
+  4: 'debug',
+  5: 'silly'
+}
 let timestamp = '',
   logFilepath = ''
 
 
-// Public method extensions
+// Winston module extension
 winston.setupMtLogger = () => {
   // Set log filepath based on timestamp
   timestamp = Date.now()
@@ -17,11 +25,13 @@ winston.setupMtLogger = () => {
     level: 'verbose',
     transports: [
       new (winston.transports.Console)({
-        colorize: true
+        colorize: true,
+        level: logPriorityMap[process.env.LOG_PRIORITY_CONSOLE]
       }),
       new (winston.transports.File)({
         name: 'info-logfile',
-        filename: logFilepath
+        filename: logFilepath,
+        level: logPriorityMap[process.env.LOG_PRIORITY_FILE]
       })
     ]
   })
